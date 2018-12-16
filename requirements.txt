@@ -1,0 +1,5 @@
+imutils
+picamera
+python_osc
+# numpy
+# cv2
