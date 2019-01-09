@@ -35,7 +35,8 @@ void mousePressed() {
 
 
 void draw() {
-  background(0);  
+  fill(0,10);
+  rect(0,0,width,height);
 }
 
 void oscEvent(OscMessage msg) {
@@ -46,7 +47,9 @@ void oscEvent(OscMessage msg) {
         msg.get(2).intValue(),
         msg.get(3).intValue()
     );
-    println(c);
+    println("T:"+millis() + ">> " + c);
+    fill(200,10,0);
+    rect(c.x,c.y,c.w,c.h);
   }
   print("### received an osc message.");
   print(" addrpattern: "+msg.addrPattern());

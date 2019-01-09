@@ -26,7 +26,11 @@ ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video", help="path to the video file")
 ap.add_argument("-a", "--min-area", type=int, default=500, help="minimum area size")
 ap.add_argument("-d", "--debug-windows", type=bool, default=True, help="displays debug image windows")
+ap.add_argument("--ip", default="127.0.0.1", help="The ip to listen on")
+ap.add_argument("--port", type=int, default=5005, help="The port to listen on")
+
 args = vars(ap.parse_args())
+
  
 # if the video argument is None, then we are reading from webcam
 if args.get("video", None) is None:
@@ -39,33 +43,11 @@ else:
  
 # initialize the first frame in the video stream
 firstFrame = None
-debugWindows = args["debug_windows"]
+debugWindows = True
 showHelp = False
-
-# OSC server init
-parser = argparse.ArgumentParser()
-parser.add_argument("--ip",
-    default="127.0.0.1", help="The ip to listen on")
-parser.add_argument("--port",
-    type=int, default=5005, help="The port to listen on")
-args = parser.parse_args()
+displayImageIndex = 0;
 
 
-def print_compute_handler(unused_addr, args, volume):
-  try:
-    print("[{0}] ~ {1}".format(args[0], args[1](volume)))
-  except ValueError: pass
-
-# OSC routes
-dispatcher = dispatcher.Dispatcher()
-dispatcher.map("/filter", print)
-dispatcher.map("/logvolume", print_compute_handler, "Log volume", math.log)
-
-server = osc_server.ThreadingOSCUDPServer(
-    (args.ip, args.port), dispatcher)
-print("Serving on {}".format(server.server_address))
-server_thread = threading.Thread(target=server.serve_forever)
-server_thread.start()
 
 # loop over the frames of the video
 while True:
@@ -114,7 +96,7 @@ while True:
       if displayImageIndex==2:
         displayImage = frameDelta
 
-      cv2.rectangle(displayImage, (x, y), (x + w, y + h), (0, 255, 0), 2)
+    cv2.rectangle(displayImage, (x, y), (x + w, y + h), (0, 255, 0), 2)
       cv2.imshow("Video", displayImage)
 
   key = cv2.waitKey(1) & 0xFF
@@ -134,3 +116,54 @@ while True:
 # cleanup the camera and close any open windows
 vs.stop() if args.get("video", None) is None else vs.release()
 cv2.destroyAllWindows()
+
+
+
+
+
+class ServerApp:
+    application = None
+
+    def __init__(self):
+        self.application = tornado.web.Application([
+            # (r'/camera', WSHandler),
+            (r'/',       MainHandler),
+            (r'/news',               GetAllNewsHandler),
+            (r'/news/id/(.*)',       GetOneNewsHandler),
+            (r'/news/content/(.*)',  ContentNewsHandler),
+            (r'/news/random',        RandomNewsHandler),
+            (r'/news/popular',       PopularNewsHandler),
+            (r'/news/voteup/(.*)',   VoteUpNewsHandler),
+            (r'/news/votedown/(.*)', VoteDownNewsHandler),
+            (r"/(.*)", tornado.web.StaticFileHandler, {"path": "./resources"}),
+        ],{'autoreload':True})
+    
+    def start(self):
+        print ('/////starting the server on http://localhost:9090')
+        # OSC server init
+        def print_compute_handler(unused_addr, args, volume):
+          try:
+            print("[{0}] ~ {1}".format(args[0], args[1](volume)))
+          except ValueError: pass
+
+        # OSC routes
+        dispatcher = dispatcher.Dispatcher()
+        dispatcher.map("/filter", print)
+        dispatcher.map("/logvolume", print_compute_handler, "Log volume", math.log)
+
+        server = osc_server.ThreadingOSCUDPServer(
+            (args.ip, args.port), dispatcher)
+        print("Serving on {}".format(server.server_address))
+        server_thread = threading.Thread(target=server.serve_forever)
+        server_thread.start()
+
+    def stop(self):
+        tornado.ioloop.IOLoop.instance().stop()
+        print ('/////stopping the server')
+
+    # def broadcast_socket(self, message):
+        # WSHandler.broadcast(message)
+
+
+if __name__ == '__main__':
+    chamber = ServerApp()
