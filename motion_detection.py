@@ -26,6 +26,8 @@ ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video", help="path to the video file")
 ap.add_argument("-a", "--min-area", type=int, default=500, help="minimum area size")
 ap.add_argument("-d", "--debug-windows", type=bool, default=True, help="displays debug image windows")
+ap.add_argument("--ip", default="127.0.0.1", help="The ip to listen on")
+ap.add_argument("--port", type=int, default=5005, help="The port to listen on")
 args = vars(ap.parse_args())
  
 # if the video argument is None, then we are reading from webcam
@@ -41,15 +43,7 @@ else:
 firstFrame = None
 debugWindows = args["debug_windows"]
 showHelp = False
-
-# OSC server init
-parser = argparse.ArgumentParser()
-parser.add_argument("--ip",
-    default="127.0.0.1", help="The ip to listen on")
-parser.add_argument("--port",
-    type=int, default=5005, help="The port to listen on")
-args = parser.parse_args()
-
+displayImageIndex = 0
 
 def print_compute_handler(unused_addr, args, volume):
   try:
@@ -61,8 +55,7 @@ dispatcher = dispatcher.Dispatcher()
 dispatcher.map("/filter", print)
 dispatcher.map("/logvolume", print_compute_handler, "Log volume", math.log)
 
-server = osc_server.ThreadingOSCUDPServer(
-    (args.ip, args.port), dispatcher)
+server = osc_server.ThreadingOSCUDPServer( (args.get("ip",None), args.get("port",None)), dispatcher )
 print("Serving on {}".format(server.server_address))
 server_thread = threading.Thread(target=server.serve_forever)
 server_thread.start()
