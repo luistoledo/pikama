@@ -21,6 +21,9 @@ import math
 from pythonosc import dispatcher
 from pythonosc import osc_server
  
+
+
+
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video", help="path to the video file")
@@ -32,6 +35,8 @@ ap.add_argument("--port", type=int, default=5005, help="The port to listen on")
 args = vars(ap.parse_args())
 
  
+
+
 # if the video argument is None, then we are reading from webcam
 if args.get("video", None) is None:
   vs = VideoStream(src=0).start()
@@ -41,8 +46,11 @@ if args.get("video", None) is None:
 else:
   vs = cv2.VideoCapture(args["video"])
  
+
+
 # initialize the first frame in the video stream
 firstFrame = None
+# debugging vars
 debugWindows = True
 showHelp = False
 displayImageIndex = 0;
@@ -97,7 +105,7 @@ while True:
         displayImage = frameDelta
 
     cv2.rectangle(displayImage, (x, y), (x + w, y + h), (0, 255, 0), 2)
-      cv2.imshow("Video", displayImage)
+    cv2.imshow("Video", displayImage)
 
   key = cv2.waitKey(1) & 0xFF
 

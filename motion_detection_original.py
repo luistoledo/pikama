@@ -13,21 +13,14 @@ from imutils.video import VideoStream
 import argparse
 import datetime
 import imutils
-import threading
 import time
 import cv2
-import math
-
-from pythonosc import dispatcher
-from pythonosc import osc_server
  
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video", help="path to the video file")
 ap.add_argument("-a", "--min-area", type=int, default=500, help="minimum area size")
 ap.add_argument("-d", "--debug-windows", type=bool, default=True, help="displays debug image windows")
-ap.add_argument("--ip", default="127.0.0.1", help="The ip to listen on")
-ap.add_argument("--port", type=int, default=5005, help="The port to listen on")
 args = vars(ap.parse_args())
  
 # if the video argument is None, then we are reading from webcam
@@ -42,23 +35,6 @@ else:
 # initialize the first frame in the video stream
 firstFrame = None
 debugWindows = args["debug_windows"]
-showHelp = False
-displayImageIndex = 0
-
-def print_compute_handler(unused_addr, args, volume):
-  try:
-    print("[{0}] ~ {1}".format(args[0], args[1](volume)))
-  except ValueError: pass
-
-# OSC routes
-dispatcher = dispatcher.Dispatcher()
-dispatcher.map("/filter", print)
-dispatcher.map("/logvolume", print_compute_handler, "Log volume", math.log)
-
-server = osc_server.ThreadingOSCUDPServer( (args.get("ip",None), args.get("port",None)), dispatcher )
-print("Serving on {}".format(server.server_address))
-server_thread = threading.Thread(target=server.serve_forever)
-server_thread.start()
 
 # loop over the frames of the video
 while True:
@@ -100,15 +76,10 @@ while True:
     (x, y, w, h) = cv2.boundingRect(c)
 
     if debugWindows:
-      if displayImageIndex==0:
-        displayImage = frame
-      if displayImageIndex==1:
-        displayImage = thres
-      if displayImageIndex==2:
-        displayImage = frameDelta
-
-      cv2.rectangle(displayImage, (x, y), (x + w, y + h), (0, 255, 0), 2)
-      cv2.imshow("Video", displayImage)
+      cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+      cv2.imshow("Video Feed", frame)
+      cv2.imshow("Threshold", thresh)
+      cv2.imshow("Frame Delta", frameDelta)
 
   key = cv2.waitKey(1) & 0xFF
 
@@ -117,14 +88,9 @@ while True:
     break
   if key == ord("f"):
     firstFrame = None
-  if key == ord("v"):
-    displayImageIndex = 0 if displayImageIndex<3 else displayImageIndex+1
   if key == ord("d"):
     debugWindows = not debugWindows
-  if key == ord("h"):
-    showHelp = not showHelp
  
 # cleanup the camera and close any open windows
-server_thread.stop()
 vs.stop() if args.get("video", None) is None else vs.release()
 cv2.destroyAllWindows()
