@@ -26,7 +26,7 @@ args = vars(ap.parse_args())
 # if the video argument is None, then we are reading from webcam
 if args.get("video", None) is None:
   vs = VideoStream(src=0).start()
-  time.sleep(2.0)
+  time.sleep(0.5)
  
 # otherwise, we are reading from a video file
 else:
@@ -35,6 +35,8 @@ else:
 # initialize the first frame in the video stream
 firstFrame = None
 debugWindows = args["debug_windows"]
+displayImageIndex = 0 #debug image
+thval = 10 #threshold
 
 # loop over the frames of the video
 while True:
@@ -58,13 +60,22 @@ while True:
 
   # compute the absolute difference between the current frame and first frame
   frameDelta = cv2.absdiff(firstFrame, gray)
-  thresh = cv2.threshold(frameDelta, 25, 255, cv2.THRESH_BINARY)[1]
+  thresh = cv2.threshold(frameDelta, thval, 255, cv2.THRESH_BINARY)[1]
   # dilate the thresholded image to fill in holes, 
   thresh = cv2.dilate(thresh, None, iterations=2)
   # then find contours on thresholded image
   cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
     cv2.CHAIN_APPROX_SIMPLE)
   cnts = imutils.grab_contours(cnts)
+
+  displayImage=firstFrame
+  if debugWindows:
+    if displayImageIndex==0:
+      displayImage = frame
+    if displayImageIndex==1:
+      displayImage = thresh
+    if displayImageIndex==2:
+      displayImage = frameDelta
  
   # loop over the contours
   for c in cnts:
@@ -75,22 +86,30 @@ while True:
     # compute the bounding box for the contour, draw it on the frame,
     (x, y, w, h) = cv2.boundingRect(c)
 
-    if debugWindows:
-      cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-      cv2.imshow("Video Feed", frame)
-      cv2.imshow("Threshold", thresh)
-      cv2.imshow("Frame Delta", frameDelta)
+    cv2.rectangle(displayImage, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+  cv2.putText(displayImage,"threshold: "+str(thval),(10,10),cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), lineType=cv2.LINE_AA)
+  cv2.imshow("video", displayImage)
 
   key = cv2.waitKey(1) & 0xFF
 
   # keyboard controls
   if key == ord("q"):
     break
+  if key == ord("v"):
+    displayImageIndex+=1
+    if displayImageIndex>2:
+      displayImageIndex=0
   if key == ord("f"):
     firstFrame = None
   if key == ord("d"):
     debugWindows = not debugWindows
+  if key == ord("1"):
+    thval+=10
+  if thval > 190:
+    thval=0
  
 # cleanup the camera and close any open windows
 vs.stop() if args.get("video", None) is None else vs.release()
 cv2.destroyAllWindows()
+raise SystemExit()
