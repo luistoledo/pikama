@@ -103,7 +103,7 @@ while True:
       if displayImageIndex==0:
         displayImage = frame
       if displayImageIndex==1:
-        displayImage = thres
+        displayImage = thresh
       if displayImageIndex==2:
         displayImage = frameDelta
 
