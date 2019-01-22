@@ -18,6 +18,8 @@ import sys
 import cv2
 
 class Pikama:
+
+  last_blobs = list()
   
   def __init__(self, args=None):
     if args == None:
@@ -46,6 +48,7 @@ class Pikama:
     self.min_area = args["min_area"] # blob minim size
     self.thval = args["threshold"]
     self.is_active = True
+    #  TODO : extraer width height y exponerlo
 
   def stop(self):
     self.is_active = False
@@ -120,7 +123,7 @@ class Pikama:
       # cv2.rectangle(displayImage, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
     if self.debugWindows:
-      cv2.putText(displayImage,"blobs: "+str(len(cnts)),(10,13),cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), lineType=cv2.LINE_AA)
+      cv2.putText(displayImage,"blobs: "+str(len(points)),(10,13),cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), lineType=cv2.LINE_AA)
       cv2.putText(displayImage,"threshold: "+str(self.thval),(10,33),cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), lineType=cv2.LINE_AA)
       cv2.putText(displayImage,"min_area: "+str(self.min_area),(10,53),cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), lineType=cv2.LINE_AA)
 
@@ -149,12 +152,15 @@ class Pikama:
       self.min_area=100
 
     return points
+    # if self.last_blobs != points:
+    #   self.last_blobs == points
+    #   return points
 
   def stop(self):
     # cleanup the camera and close any open windows
     self.vs.stop() #if self.source=="camera" else self.vs.release()
     cv2.destroyAllWindows()
-    raise SystemExit()
+    # raise SystemExit()
 
 
 if __name__ == '__main__':
@@ -168,4 +174,4 @@ if __name__ == '__main__':
     #   if len(blobs)>1 :
     #     print (blobs)
     #     break
-
+    raise SystemExit()

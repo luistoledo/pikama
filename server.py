@@ -12,18 +12,19 @@ import json
 import sys
 
 class RequestHandler(tornado.web.RequestHandler):
-
     @tornado.web.asynchronous
     @gen.coroutine
     def get(self, path):
         self.write("Test")
         self.finish()
+    # TODO ADD SIZE/RESET BG HANDLERS
 
 class WebServer(threading.Thread):
     def run(self):
         asyncio.set_event_loop(asyncio.new_event_loop())
         application = tornado.web.Application([
-            # (r"/(.*)", RequestHandler),
+            (r"/size", RequestHandler),
+            (r"/reset", RequestHandler),
             (r'/blobs', WSHandler)])
         application.listen(12345)
         tornado.ioloop.IOLoop.instance().start()
@@ -53,23 +54,29 @@ class WSHandler(tornado.websocket.WebSocketHandler):
     def on_close(self):
         self.waiters.remove(self)
         print ('-----websocket connection closed')
+# 
 
-
+last_blobs = list()
 try:
     cam = Pikama()
     WebServer().start()
     while cam.is_active:
         blobs = cam.search_blobs()
-        if blobs is not None:
-            if len(blobs) > 0:
-                blobs = json.dumps(blobs)
-                WebServer().broadcast(blobs)
-                # print(blobs)
-                # break
-
-except KeyboardInterrupt:
+        # if blobs is not None:
+        if last_blobs != blobs:
+            last_blobs == blobs
+            WebServer().broadcast(json.dumps(blobs))
+    cam.stop()
     tornado.ioloop.IOLoop.instance().stop()
     sys.exit()
+    raise SystemExit()
+
+except KeyboardInterrupt:
+    cam.stop()
+    tornado.ioloop.IOLoop.instance().stop()
+    sys.exit()
+    raise SystemExit()
 
 except:
-    raise
+    raise SystemExit()
+
