@@ -20,6 +20,9 @@ import cv2
 class Pikama:
 
   last_blobs = list()
+  crop_coords = []
+  cropping = False
+  cropped  = False
   
   def __init__(self, args=None):
     if args == None:
@@ -48,6 +51,8 @@ class Pikama:
     self.min_area = args["min_area"] # blob minim size
     self.thval = args["threshold"]
     self.is_active = True
+    cv2.namedWindow("video")
+    cv2.setMouseCallback("video", self.click_and_crop)
     #  TODO : extraer width height y exponerlo
 
   def stop(self):
@@ -65,6 +70,12 @@ class Pikama:
    
     # resize the frame, convert it to grayscale, and blur it
     frame = imutils.resize(frame, width=500)
+
+    if self.cropped:
+      frame = frame[self.crop_coords[0][1]:self.crop_coords[1][1], self.crop_coords[0][0]:self.crop_coords[1][0]]
+
+    frame = imutils.resize(frame, width=500)
+
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     gray = cv2.GaussianBlur(gray, (21, 21), 0)
    
@@ -114,18 +125,13 @@ class Pikama:
       if self.debugWindows:
         cv2.circle(displayImage, center, radius,(0,255,0),2)
 
-      # cv2.circle(displayImage, (cX, cY), 7, (255, 255, 255), -1)
-      # cv2.circle(displayImage, (cX, cY), 7, (255, 255, 255), -1)
-
-      # compute the bounding box for the contour, draw it on the frame,
-      # (x, y, w, h) = cv2.boundingRect(c)
-
-      # cv2.rectangle(displayImage, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
     if self.debugWindows:
       cv2.putText(displayImage,"blobs: "+str(len(points)),(10,13),cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), lineType=cv2.LINE_AA)
       cv2.putText(displayImage,"threshold: "+str(self.thval),(10,33),cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), lineType=cv2.LINE_AA)
       cv2.putText(displayImage,"min_area: "+str(self.min_area),(10,53),cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), lineType=cv2.LINE_AA)
+
+      if self.cropping:
+        cv2.rectangle(displayImage, self.crop_coords[0], self.crop_coords[1], (200, 5, 5, 50), 2)
 
       cv2.imshow("video", displayImage)
 
@@ -134,6 +140,11 @@ class Pikama:
     # keyboard controls
     if key == ord("q"):
       self.is_active = False
+    elif key == ord("r"):
+      self.crop_coords = []
+      self.cropped = False
+      self.cropping = False
+      self.firstFrame = None
     elif key == ord("v"):
       self.displayImageIndex+=1
       if self.displayImageIndex>2:
@@ -163,6 +174,26 @@ class Pikama:
     # raise SystemExit()
 
 
+  def click_and_crop(self, event, x, y, flags, param):
+    if self.cropping:
+      self.crop_coords[1] = (x, y)
+
+    if event == cv2.EVENT_LBUTTONDOWN:
+      self.crop_coords = [(x, y)]
+      self.crop_coords.append((x, y))
+      self.cropping = True
+      self.cropped = False
+   
+    elif event == cv2.EVENT_LBUTTONUP:
+      x = max(x+100, self.crop_coords[0][0])
+      y = max(y+100, self.crop_coords[0][1])
+      print (self.crop_coords)
+      self.crop_coords[1] = (x, y)
+      self.cropping = False
+      self.cropped = True
+      self.firstFrame = None
+ 
+
 if __name__ == '__main__':
   pikama = Pikama(None)
 
@@ -174,4 +205,5 @@ if __name__ == '__main__':
     #   if len(blobs)>1 :
     #     print (blobs)
     #     break
-    raise SystemExit()
+  
+  raise SystemExit()
