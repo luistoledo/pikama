@@ -19,6 +19,8 @@ boolean dibujarSilueta = true;
 boolean animar_linea=false;
 boolean repetir_linea=false;
 
+boolean show_help = false;
+
 // timer para cuándo ocultar la linea
 int alarmaDeLinea = 0;
 
@@ -94,6 +96,11 @@ void draw() {
       println("<<< termina tiempo de mostrar linea");
       EstadoANegro();
     }
+  }
+
+  if (this.show_help) {
+    fill (200);
+    text("H : Show/hide this help\nT : Threshold \nN : Mirror vertical \nM : Mirror horizontal \nP : Limit Max area \nO : Limit Min area \nK : Change view \nR : Reset reference \nD : Show/hide debug (blobs, lines) \nC : (re)Connect with pikama server \n1 : EstadoALinea \n2 : Nueva linea fija \n3 : nueva linea fija en mouse \n4 : nueva linea lejos de blobs \n9 : mutar \n0 : EstadoANegro", 30, 30);
   }
 }
 
@@ -184,10 +191,10 @@ void keyPressed() {
     PikamaClient.CommandServer("threshold");
   }
   else if (keyCode=='K') {
-    // PikamaClient.CommandServer("max_area");
+    PikamaClient.CommandServer("view");
   }
-  else if (keyCode=='J') {
-    // PikamaClient.CommandServer("max_area");
+  else if (keyCode=='H') {
+    show_help = !show_help;
   }
 
   // altera cada punto de una linea ya creada

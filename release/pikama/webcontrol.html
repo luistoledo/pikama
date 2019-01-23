@@ -1,0 +1,23 @@
+<html>
+  <head>
+    <title>pikama</title>
+  </head>
+  <body>
+  kaixo, pikama naiz
+  <br/>
+
+  <img src='/static/snapshot.jpg?{{ rnd }}' />
+  <br />
+
+  <form>
+  <button type="submit" formaction="/do/threshold" formmethod="get">threshold</button>
+  <button type="submit" formaction="/do/mirror_horizontal" formmethod="get">mirror_horizontal</button>
+  <button type="submit" formaction="/do/mirror_vertical" formmethod="get">mirror_vertical</button>
+  <button type="submit" formaction="/do/max_area" formmethod="get">max_area</button>
+  <button type="submit" formaction="/do/view" formmethod="get">view</button>
+  <button type="submit" formaction="/do/reset" formmethod="get">reset background</button>
+  </form>
+
+  <input type="button" value = "refresh" onclick="history.go(0)" />
+  </body>
+</html>

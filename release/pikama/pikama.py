@@ -29,6 +29,7 @@ class Pikama:
   mirror_vertical = False
   width = 500
   height = 500
+  need_snapshot = False
   
   def __init__(self, args=None):
     if args == None:
@@ -141,8 +142,8 @@ class Pikama:
 
       self.points.append([x,y,radius])
 
-      if self.debugWindows:
-        cv2.circle(displayImage, center, radius,(0,255,0),2)
+      # if self.debugWindows:
+      cv2.circle(displayImage, center, radius,(0,255,0),2)
 
     if self.debugWindows:
       cv2.putText(displayImage,"blobs: "+str(len(self.points)),(10,13),cv2.FONT_HERSHEY_SIMPLEX, 0.4, (205, 250, 150), lineType=cv2.LINE_AA)
@@ -167,7 +168,11 @@ class Pikama:
 
       cv2.imshow("video", displayImage)
 
-    key = cv2.waitKey(1) & 0xFF
+    if self.need_snapshot: 
+      cv2.imwrite('static/snapshot.jpg', displayImage)
+      self.need_snapshot = False
+
+    key = cv2.waitKey(10) & 0xFF
 
     # keyboard controls
     if key == ord("q"):
@@ -178,11 +183,6 @@ class Pikama:
       self.cropped = False
       self.cropping = False
       self.firstFrame = None
-
-    elif key == ord("v"):
-      self.displayImageIndex+=1
-      if self.displayImageIndex>2:
-        self.displayImageIndex=0
     
     elif key == ord("m"):
       self.mirror_horizontal = not self.mirror_horizontal
@@ -203,6 +203,13 @@ class Pikama:
       self.min_area+=100
     elif key == ord("3"):
       self.max_area+=100
+
+    elif key == ord("v"):
+      self.displayImageIndex+=1
+ 
+    if self.displayImageIndex>2:
+      self.displayImageIndex=0
+
     if self.thval > 190:
       self.thval=0
     if self.min_area > 2500:
@@ -231,11 +238,16 @@ class Pikama:
       self.cropped = False
    
     elif event == cv2.EVENT_LBUTTONUP:
-      x = max(x, self.crop_coords[0][0]+50)
-      y = max(y, self.crop_coords[0][1]+50)
+      # x = max(x, self.crop_coords[0][0]+50)
+      # y = max(y, self.crop_coords[0][1]+50)
       self.crop_coords[1] = (x, y)
-      self.cropping = False
       self.cropped = True
+
+      if abs(x-self.crop_coords[0][0]) < 100 or abs(y-self.crop_coords[0][1]) < 100:
+        self.crop_coords = []
+        self.cropped = False
+      
+      self.cropping = False
       self.firstFrame = None
 
     if self.cropping and not self.cropped:

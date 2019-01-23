@@ -83,8 +83,8 @@ public static class PikamaClient {
 
   public static void draw() {
     applet.pushMatrix();
-    applet.stroke(200, 0, 0, 100);
-    applet.fill(0, 200, 0, 40);
+    applet.stroke(200, 0, 0, 50);
+    applet.fill(0, 200, 0, 20);
 
     if (blobs!=null) {
       for (int i=0; i<blobs.size(); i++) {

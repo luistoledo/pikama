@@ -9,14 +9,20 @@ import tornado.websocket
 from tornado import gen
 import asyncio
 import json
+import time
 import sys
 
 class RootHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @gen.coroutine
     def get(self):
-        self.write("kaixo, pikama naiz")
-        self.finish()
+        cam.need_snapshot = True
+        self.render("webcontrol.html", rnd=time.time())
+        # self.write("kaixo, pikama naiz<br/><img src='static/snapshot.jpg?{0}' />".format(str(time.time())))
+        # self.finish()
+    
+    def set_extra_headers(self, path):
+        self.set_header("Cache-control", "no-cache")
 
 class CommandsHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
@@ -41,13 +47,18 @@ class CommandsHandler(tornado.web.RequestHandler):
         if cmd=="threshold":
             cam.thval += 10
             self.write("ok")
-        self.finish()
+        if cmd=="view":
+            cam.displayImageIndex += 1
+            self.write("ok")
+        self.redirect('/')
+        # self.finish()
 
 class WebServer(threading.Thread):
     def run(self):
         asyncio.set_event_loop(asyncio.new_event_loop())
         application = tornado.web.Application([
             (r"/", RootHandler),
+            (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "static"}),
             (r"/do/(.*)", CommandsHandler),
             (r'/blobs', WSHandler)])
         application.listen(12345)
