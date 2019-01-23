@@ -11,25 +11,39 @@ import asyncio
 import json
 import sys
 
-class RequestHandler(tornado.web.RequestHandler):
+class RootHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @gen.coroutine
-    def get(self, path):
-        self.write("Test")
+    def get(self):
+        self.write("kaixo, pikama naiz")
         self.finish()
-    # TODO ADD SIZE/RESET BG HANDLERS
+
+class CommandsHandler(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @gen.coroutine
+    def get(self, cmd):
+        print(cmd)
+        if cmd=="reset":
+            cam.firstFrame = None
+            self.write("ok")
+        if cmd=="mirror_h":
+            cam.mirror_horizontal = true
+            self.write("ok")
+        self.finish()
 
 class WebServer(threading.Thread):
     def run(self):
         asyncio.set_event_loop(asyncio.new_event_loop())
         application = tornado.web.Application([
-            (r"/size", RequestHandler),
-            (r"/reset", RequestHandler),
+            (r"/", RootHandler),
+            (r"/do/(.*)", CommandsHandler),
             (r'/blobs', WSHandler)])
         application.listen(12345)
-        tornado.ioloop.IOLoop.instance().start()
-        print ('/////starting the server on http://localhost:9090')
+        print ('/////starting the server on http://localhost:12345')
+        tornado.ioloop.IOLoop.current().start()
 
+    def stop(self):
+        tornado.ioloop.IOLoop.current().stop()
 
     def broadcast(self, txt):
         WSHandler.broadcast(txt)
@@ -39,8 +53,9 @@ class WSHandler(tornado.websocket.WebSocketHandler):
 
     def open(self):
         self.waiters.add(self)
-        print ('-----websocket connection opened')
-        self.write_message("connection opened")
+        print ('-----websocket connection opened. now:'+str(len(self.waiters)))
+        # self.write_message("connection opened")
+        cam.firstFrame = None
 
     def on_message(self, message):
         print ('----websocket receive: ' + message)
@@ -53,7 +68,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
 
     def on_close(self):
         self.waiters.remove(self)
-        print ('-----websocket connection closed')
+        print ('-----websocket connection closed. now:'+str(len(self.waiters)))
 # 
 
 last_blobs = list()
@@ -67,16 +82,15 @@ try:
             last_blobs == blobs
             WebServer().broadcast(json.dumps(blobs))
     cam.stop()
-    tornado.ioloop.IOLoop.instance().stop()
+    WebServer().stop()
     sys.exit()
+
+except (KeyboardInterrupt, SystemExit):
+#     cam.stop()
+#     tornado.ioloop.IOLoop.current().stop()
+#     sys.exit()
     raise SystemExit()
 
-except KeyboardInterrupt:
-    cam.stop()
-    tornado.ioloop.IOLoop.instance().stop()
-    sys.exit()
-    raise SystemExit()
-
-except:
-    raise SystemExit()
+finally:
+    raise
 
