@@ -16,7 +16,7 @@ void loadSounds() {
     sonidosLejos.add( new SoundFile(this, "Sonidos/Lejos/lejos_"+i+".wav") );
   }
   
-  currentSound = sonidoCerca[0];
+  currentSound = sonidosCerca.get(0);
 }
 
 void playSonidoCerca() {
