@@ -35,6 +35,7 @@ float factorSonidoLejano = 2, factorSonidoCercano = 10;
 final int ESTADO_NEGRO = 0;
 final int ESTADO_LINEA = 1;
 
+int resetBGTimer = -1;
 
 
 void setup() {
@@ -52,6 +53,16 @@ void setup() {
 
 
 void draw() {
+
+  if (resetBGTimer != -1) {
+    resetBGTimer --;
+    if (resetBGTimer <= 0) {
+      PikamaClient.ResetBGSubtraction();
+      resetBGTimer = -1;
+      println(millis() + " : resetetting");
+    }
+  }
+
   // actualiza la escala entre la pantalla y la cámara
   // así la posición de los blobs y las lineas coincidirán
   if (!escalaEstablecida) {
@@ -111,14 +122,14 @@ void draw() {
 
   if (this.show_help) {
     fill (150);
-    text("H : Show/hide this help\nT : Threshold \nN : Mirror vertical \nM : Mirror horizontal \nP : Limit Max area \nO : Limit Min area \nK : Change view \nR : Reset reference \nD : Show/hide debug (blobs, lines) \nC : (re)Connect with pikama server \n1 : EstadoALinea \n2 : Nueva linea fija \n3 : nueva linea fija en mouse \n4 : nueva linea lejos de blobs \n9 : mutar \n0 : EstadoANegro\nJ : probar sonido", 30, 30);
+    text("H : Show/hide this help\n\nT : Threshold \nN : Mirror vertical \nM : Mirror horizontal \nP : Limit Max area \nO : Limit Min area \nK : Change view \nR : Reset reference \nD : Show/hide debug (blobs, lines) \nC : (re)Connect with pikama server \n1 : EstadoALinea \n2 : Nueva linea fija \n3 : nueva linea fija en mouse \n4 : nueva linea lejos de blobs \n9 : mutar \n0 : EstadoANegro\nJ : probar sonido\nUP: rango de sonido cercano\nDOWN: rango de sonido lejano", 30, 30);
   }
 
   if (DEBUG) {
     pushMatrix();
     fill(200,200,200,50);
     rect(0,0, map(factorSonidoCercano,1,20,0,width), 3 );
-    rect(0,4, map(factorSonidoLejano,1,3,0,width), 3 );
+    rect(0,4, map(factorSonidoLejano,1,4,0,width), 3 );
     // textSize(6);
     // fill(0);
     // text(factorSonidoCercano, 0,6);
@@ -133,6 +144,8 @@ void EstadoANegro() {
   estado = ESTADO_NEGRO;
   println("ESTADO NEGRO");
   PikamaClient.ResetBGSubtraction();
+  resetBGTimer = int(frameRate*1.5);
+  println(millis() + " : ask to reset");
 }
 void EstadoALinea() {
   animar_linea=true;
@@ -241,7 +254,7 @@ void keyPressed() {
   }
 
   if (factorSonidoCercano>20) factorSonidoCercano=1;
-  if (factorSonidoLejano>3) factorSonidoLejano=1;
+  if (factorSonidoLejano>4) factorSonidoLejano=1;
 }
 
 
