@@ -26,6 +26,8 @@ class Pikama:
   points = list()
   mirror_horizontal = False
   mirror_vertical = False
+  width = 500
+  height = 500
   
   def __init__(self, args=None):
     if args == None:
@@ -72,13 +74,15 @@ class Pikama:
       return
    
     # resize the frame, convert it to grayscale, and blur it
-    frame = imutils.resize(frame, width=500)
+    frame = imutils.resize(frame, width=self.width)
 
     if self.cropped:
-      frame = frame[self.crop_coords[0][1]:self.crop_coords[1][1], self.crop_coords[0][0]:self.crop_coords[1][0]]
+      newframe = frame[self.crop_coords[0][1]:self.crop_coords[1][1], self.crop_coords[0][0]:self.crop_coords[1][0]]
+      # frame = None
+      frame = imutils.resize(newframe, width=self.width)
 
+    self.height, self.width, _ = frame.shape
 
-    frame = imutils.resize(frame, width=500)
 
 
     if self.mirror_horizontal:
@@ -196,6 +200,7 @@ class Pikama:
       self.min_area=100
 
 
+    self.points.append ( [self.width, self.height] )
     return self.points
     # if self.last_blobs != points:
     #   self.last_blobs == points
@@ -218,7 +223,6 @@ class Pikama:
       x = max(x, self.crop_coords[0][0]+50)
       y = max(y, self.crop_coords[0][1]+50)
       self.crop_coords[1] = (x, y)
-      print (self.crop_coords)
       self.cropping = False
       self.cropped = True
       self.firstFrame = None
