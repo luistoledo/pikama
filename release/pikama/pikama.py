@@ -36,7 +36,7 @@ class Pikama:
       ap = argparse.ArgumentParser()
       ap.add_argument("-v", "--video", help="path to the video file")
       ap.add_argument("-a", "--min-area", type=int, default=500, help="minimum area size")
-      ap.add_argument("-A", "--max-area", type=int, default=3000, help="maximum area size")
+      ap.add_argument("-A", "--max-area", type=int, default=10000, help="maximum area size")
       ap.add_argument("-t", "--threshold", type=int, default=20, help="video threshold")
       ap.add_argument("-d", "--debug-windows", type=bool, default=True, help="displays debug image windows")
       args = vars(ap.parse_args())
@@ -202,7 +202,7 @@ class Pikama:
     elif key == ord("2"):
       self.min_area+=100
     elif key == ord("3"):
-      self.max_area+=100
+      self.max_area+=500
 
     elif key == ord("v"):
       self.displayImageIndex+=1
@@ -214,8 +214,8 @@ class Pikama:
       self.thval=0
     if self.min_area > 2500:
       self.min_area=100
-    if self.max_area > 5000:
-      self.max_area=500
+    if self.max_area > 15000:
+      self.max_area=5000
 
 
     self.points.append ( [self.width, self.height] )
