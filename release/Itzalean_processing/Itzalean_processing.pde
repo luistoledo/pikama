@@ -129,49 +129,74 @@ void keyPressed() {
     EstadoALinea();
   }
   // linea vertical a la mitad de la ventana
-  if (keyCode=='2') {
+  else if (keyCode=='2') {
     linea.nuevaFija(width/2, 0, width/2, height, 1);
     EstadoALinea();
   }
   // linea vertical desde arriba mitad, hasta el ratón
-  if (keyCode=='3') {
+  else if (keyCode=='3') {
     linea.nuevaFija(width/2, 0, mouseX, mouseY, 1);
     EstadoALinea();
   }
-  if (keyCode=='4') {
+  else if (keyCode=='4') {
     linea.nuevaLineaEncierrona();
     EstadoALinea();
   }
   //iosune
-  if (keyCode=='6') {
+  else if (keyCode=='6') {
     repetir_linea=true; 
     EstadoALinea();
   }
 
-  if (keyCode=='S') {
+  else if (keyCode=='S') {
     dibujarSilueta = !dibujarSilueta;
     println("silueta: "+dibujarSilueta);
   }
-  if (keyCode=='D') {
+  else if (keyCode=='D') {
     DEBUG = !DEBUG;
     println("DEBUG: "+DEBUG);
   }
-  if (keyCode=='R') {
+  else if (keyCode=='R') {
     PikamaClient.ResetBGSubtraction();
   }
-  if (keyCode=='C') {
+  else if (keyCode=='C') {
     PikamaClient.connect();
     println("RECONNECT SERVER: "+DEBUG);
     escalaEstablecida=false;
   }
 
+  if (keyCode=='T') {
+    PikamaClient.CommandServer("threshold");
+  }
+  else if (keyCode=='M') {
+    PikamaClient.CommandServer("mirror_horizontal");
+  }
+  else if (keyCode=='N') {
+    PikamaClient.CommandServer("mirror_vertical");
+  }
+  else if (keyCode=='P') {
+    PikamaClient.CommandServer("max_area");
+  }
+  else if (keyCode=='O') {
+    PikamaClient.CommandServer("max_area");
+  }
+  else if (keyCode=='L') {
+    PikamaClient.CommandServer("threshold");
+  }
+  else if (keyCode=='K') {
+    // PikamaClient.CommandServer("max_area");
+  }
+  else if (keyCode=='J') {
+    // PikamaClient.CommandServer("max_area");
+  }
+
   // altera cada punto de una linea ya creada
-  if (keyCode=='9') {
+  else if (keyCode=='9') {
     linea.muta(3);
     EstadoALinea();
   }
   // dibuja negro
-  if (keyCode=='0') {
+  else if (keyCode=='0') {
     EstadoANegro();
   }
 }

@@ -102,6 +102,10 @@ public static class PikamaClient {
 
 
 
+  public static void CommandServer(String cmd) {
+    applet.loadStrings("http://" + url + "/do/"+cmd);
+  }
+
   public static void ResetBGSubtraction() {
     applet.loadStrings("http://" + url + "/do/reset");
   }
