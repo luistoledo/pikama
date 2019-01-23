@@ -21,6 +21,9 @@ boolean repetir_linea=false;
 
 boolean show_help = false;
 
+int soundTimeout = 1000000;
+int soundTimer = millis();
+
 // timer para cuándo ocultar la linea
 int alarmaDeLinea = 0;
 
@@ -40,6 +43,8 @@ void setup() {
   linea = new Linea(MAX_SEGMENTOS); //
   PikamaClient.connect(this, PIKAMA_SERVER_URL);
 
+  loadSounds();
+  
   EstadoALinea();
 }
 
@@ -71,12 +76,16 @@ void draw() {
     if (p == 2) {
       println("=== objeto intersecta la linea");
       EstadoALinea();
-      // sonido alto
+      playSonidoCerca();
     }
     if (p == 1) {
       println("=== objeto se acerca a linea");
-      EstadoALinea();
-      // sonido medio
+      playSonidoMedio();
+    }
+    
+    if (p==0 && millis()-soundTimer > soundTimeout) {
+      playSonidoLejos();
+      soundTimer=millis();
     }
 
     if (DEBUG) {
@@ -99,8 +108,8 @@ void draw() {
   }
 
   if (this.show_help) {
-    fill (200);
-    text("H : Show/hide this help\nT : Threshold \nN : Mirror vertical \nM : Mirror horizontal \nP : Limit Max area \nO : Limit Min area \nK : Change view \nR : Reset reference \nD : Show/hide debug (blobs, lines) \nC : (re)Connect with pikama server \n1 : EstadoALinea \n2 : Nueva linea fija \n3 : nueva linea fija en mouse \n4 : nueva linea lejos de blobs \n9 : mutar \n0 : EstadoANegro", 30, 30);
+    fill (150);
+    text("H : Show/hide this help\nT : Threshold \nN : Mirror vertical \nM : Mirror horizontal \nP : Limit Max area \nO : Limit Min area \nK : Change view \nR : Reset reference \nD : Show/hide debug (blobs, lines) \nC : (re)Connect with pikama server \n1 : EstadoALinea \n2 : Nueva linea fija \n3 : nueva linea fija en mouse \n4 : nueva linea lejos de blobs \n9 : mutar \n0 : EstadoANegro\nJ : probar sonido", 30, 30);
   }
 }
 
@@ -195,6 +204,9 @@ void keyPressed() {
   }
   else if (keyCode=='H') {
     show_help = !show_help;
+  }
+  else if (keyCode=='J') {
+    playSonidoMedio();
   }
 
   // altera cada punto de una linea ya creada

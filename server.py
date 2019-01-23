@@ -39,7 +39,7 @@ class CommandsHandler(tornado.web.RequestHandler):
             cam.mirror_vertical = not cam.mirror_vertical
             self.write("ok")
         if cmd=="max_area":
-            cam.max_area += 100
+            cam.max_area += 500
             self.write("ok")
         if cmd=="min_area":
             cam.min_area += 100

@@ -128,26 +128,17 @@ public static class PikamaClient {
 
     for (int i=0; i<blobs.size(); i++) {
       int[] p = blobs.getJSONArray(i).getIntArray();
-      // int x = int (p[0] * scalex);
-      // int y = int (p[1] * scaley);
-      // int r = int (p[2] * ((scalex+scaley)/2));
-      // blobs.getJSONArray(i) = parseJSONArray ("[");
       
       for (int j=1; j<linea.max_segmentos; j++) {
         double d = Line2D.ptSegDistSq(
-          linea.puntos[j-1].x, 
-          linea.puntos[j-1].y, 
-          linea.puntos[j].x, 
-          linea.puntos[j].y,
-          // x,y);
+          linea.puntos[j-1].x, linea.puntos[j-1].y, 
+          linea.puntos[j].x, linea.puntos[j].y,
           p[0], p[1]);
-        // if (d<(r*r)/2) { 
-        if (d<(p[2]*p[2])/2) {
-          bestProximity = 1;
-          // if (d < r) { 
-          if (d < p[2]) {
-            return 2;
-          }
+        if (d < p[2]) {
+          return 2;
+        }
+        if ( d<(p[2]*p[2]) ) {
+          return 1;
         }
       }
     }
@@ -175,7 +166,3 @@ void webSocketEvent(String msg) {
     PikamaClient.normalizeBlobs();
   }
 }
-
-
-
-
