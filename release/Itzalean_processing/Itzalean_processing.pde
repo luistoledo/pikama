@@ -30,14 +30,16 @@ int alarmaDeLinea = 0;
 float camScreenScaleX=1, camScreenScaleY=1;
 boolean escalaEstablecida = false;
 
+float factorSonidoLejano = 2, factorSonidoCercano = 10;
+
 final int ESTADO_NEGRO = 0;
 final int ESTADO_LINEA = 1;
 
 
 
 void setup() {
-  size(640, 360);
-  // fullScreen();
+  // size(640, 360);
+  fullScreen();
   frameRate(24);
 
   linea = new Linea(MAX_SEGMENTOS); //
@@ -71,14 +73,14 @@ void draw() {
     fill(0, 50);
     rect(0, 0, width, height);
 
-    int p = PikamaClient.ProximityToLines(linea);
+    int p = PikamaClient.ProximityToLines(linea, factorSonidoCercano, factorSonidoLejano);
     
     if (p == 2) {
       println("=== objeto intersecta la linea");
       EstadoALinea();
       playSonidoCerca();
     }
-    if (p == 1) {
+    else if (p == 1) {
       println("=== objeto se acerca a linea");
       playSonidoMedio();
     }
@@ -110,6 +112,18 @@ void draw() {
   if (this.show_help) {
     fill (150);
     text("H : Show/hide this help\nT : Threshold \nN : Mirror vertical \nM : Mirror horizontal \nP : Limit Max area \nO : Limit Min area \nK : Change view \nR : Reset reference \nD : Show/hide debug (blobs, lines) \nC : (re)Connect with pikama server \n1 : EstadoALinea \n2 : Nueva linea fija \n3 : nueva linea fija en mouse \n4 : nueva linea lejos de blobs \n9 : mutar \n0 : EstadoANegro\nJ : probar sonido", 30, 30);
+  }
+
+  if (DEBUG) {
+    pushMatrix();
+    fill(200,200,200,50);
+    rect(0,0, map(factorSonidoCercano,1,20,0,width), 3 );
+    rect(0,4, map(factorSonidoLejano,1,3,0,width), 3 );
+    // textSize(6);
+    // fill(0);
+    // text(factorSonidoCercano, 0,6);
+    // text(factorSonidoLejano, 0,12);
+    popMatrix();
   }
 }
 
@@ -218,6 +232,16 @@ void keyPressed() {
   else if (keyCode=='0') {
     EstadoANegro();
   }
+
+  else if (keyCode==UP) {
+    factorSonidoCercano += 1;
+  }
+  else if (keyCode==DOWN) {
+    factorSonidoLejano += 0.1;
+  }
+
+  if (factorSonidoCercano>20) factorSonidoCercano=1;
+  if (factorSonidoLejano>3) factorSonidoLejano=1;
 }
 
 

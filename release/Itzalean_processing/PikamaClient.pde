@@ -83,8 +83,8 @@ public static class PikamaClient {
 
   public static void draw() {
     applet.pushMatrix();
-    applet.stroke(200, 0, 0, 50);
-    applet.fill(0, 200, 0, 20);
+    applet.stroke(200, 20, 0, 50);
+    applet.fill(0, 200, 0, 30);
 
     if (blobs!=null) {
       for (int i=0; i<blobs.size(); i++) {
@@ -119,6 +119,9 @@ public static class PikamaClient {
   // 2: el blob más cercano, cruza la linea
   //    revisa todos contra todos buscando resultado 1, si no, regresa 0, si si, busca un 2 en el que resulte 1
   public static int ProximityToLines(Linea linea) {
+    return ProximityToLines(linea, 10, 2);
+  }
+  public static int ProximityToLines(Linea linea, float rangocerca, float rangolejos) {
     if (!started) return 0;
     if (blobs.size()==0) return 0;
 
@@ -134,11 +137,11 @@ public static class PikamaClient {
           linea.puntos[j-1].x, linea.puntos[j-1].y, 
           linea.puntos[j].x, linea.puntos[j].y,
           p[0], p[1]);
-        if (d < p[2]) {
+        if (d <  p[2]*rangocerca ) {  // cerca
           return 2;
         }
-        if ( d<(p[2]*p[2]) ) {
-          return 1;
+        else if ( d < (p[2]*p[2])/rangolejos ) {  // lejos
+          bestProximity = 1;
         }
       }
     }

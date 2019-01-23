@@ -116,13 +116,14 @@ class Linea { //<>//
       pushMatrix();
       stroke(250);
       noFill();
-      rect(linea.minX, linea.minY, linea.boundW, linea.boundH);
+      // rect(linea.minX, linea.minY, linea.boundW, linea.boundH);
       popMatrix();
     }
 
     pushMatrix();
     stroke(47, 250, 200, 150);
     strokeWeight(1);
+    if (DEBUG){stroke(147, 200, 200, 10); strokeWeight(4); }
 
     for (int i=1; i<max_segmentos; i++) {
       // esto es para dibujar los puntos en cada vértice, solo para las pruebas
