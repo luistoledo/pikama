@@ -1,6 +1,8 @@
 int MAX_SEGMENTOS = 10;
 boolean DEBUG=false;
-int MAX_TIEMPONEGRO = 5000;
+int MAX_TIEMPOLINEA = 5000;
+int MAX_TIEMPOARBOL = 2000;
+int MAX_TIEMPONEGRO = 2000;
 
 String PIKAMA_SERVER_URL = "127.0.0.1:12345";
 
@@ -21,11 +23,13 @@ boolean repetir_linea=false;
 
 boolean show_help = false;
 
-int soundTimeout = 1000000;
+int soundTimeout = 500000; // = 20 min => 500000/1000/24
 int soundTimer = millis();
 
 // timer para cuándo ocultar la linea
 int alarmaDeLinea = 0;
+int alarmaDeArbol = 0;
+int alarmaDeNegro = 0;
 
 float camScreenScaleX=1, camScreenScaleY=1;
 boolean escalaEstablecida = false;
@@ -34,8 +38,14 @@ float factorSonidoLejano = 2, factorSonidoCercano = 10;
 
 final int ESTADO_NEGRO = 0;
 final int ESTADO_LINEA = 1;
+final int ESTADO_ARBOL = 2;
+final int ESTADO_BUSCANDO = 3;
+// linea > negro > buscando > arbol > linea
 
 int resetBGTimer = -1;
+
+
+Trees trees;
 
 
 void setup() {
@@ -44,6 +54,8 @@ void setup() {
   frameRate(24);
 
   linea = new Linea(MAX_SEGMENTOS); //
+  trees = new Trees();
+
   PikamaClient.connect(this, PIKAMA_SERVER_URL);
 
   loadSounds();
@@ -54,14 +66,14 @@ void setup() {
 
 void draw() {
 
-  if (resetBGTimer != -1) {
-    resetBGTimer --;
-    if (resetBGTimer <= 0) {
-      PikamaClient.ResetBGSubtraction();
-      resetBGTimer = -1;
-      println(millis() + " : resetetting");
-    }
-  }
+  // if (resetBGTimer != -1) {
+  //   resetBGTimer --;
+  //   if (resetBGTimer <= 0) {
+  //     PikamaClient.ResetBGSubtraction();
+  //     resetBGTimer = -1;
+  //     println(millis() + " : resetetting");
+  //   }
+  // }
 
   // actualiza la escala entre la pantalla y la cámara
   // así la posición de los blobs y las lineas coincidirán
@@ -81,14 +93,26 @@ void draw() {
 
   if (estado == ESTADO_NEGRO) {
     noStroke();
+    fill(0, 80);
+    rect(0, 0, width, height);
+
+    if (alarmaDeNegro - millis() < 0) {
+      println("<<< termina tiempo en negro sin buscar");
+      PikamaClient.ResetBGSubtraction();
+      EstadoABuscando();
+    }
+  }
+
+  if (estado == ESTADO_BUSCANDO) {
+    noStroke();
     fill(0, 50);
     rect(0, 0, width, height);
 
     int p = PikamaClient.ProximityToLines(linea, factorSonidoCercano, factorSonidoLejano);
-    
+
     if (p == 2) {
-      println("=== objeto intersecta la linea");
-      EstadoALinea();
+      println("=== objeto intersecta la linea");      
+      EstadoAArbol();
       playSonidoCerca();
     }
     else if (p == 1) {
@@ -96,6 +120,8 @@ void draw() {
       playSonidoMedio();
     }
     
+    // cuando no detecta personas cercanas a la linea
+    // toca el sonido lejos cada 
     if (p==0 && millis()-soundTimer > soundTimeout) {
       playSonidoLejos();
       soundTimer=millis();
@@ -103,6 +129,17 @@ void draw() {
 
     if (DEBUG) {
       linea.dibuja();
+    }
+  }
+
+  if (estado == ESTADO_ARBOL) {
+    linea.dibuja();
+    pushMatrix();
+    trees.draw();
+    popMatrix();
+    if (alarmaDeArbol - millis() < 0) {
+      println("<<< termina tiempo para mostrar arbol");
+      EstadoALinea();
     }
   }
 
@@ -139,22 +176,32 @@ void draw() {
 }
 
 
+void EstadoABuscando() {
+  estado = ESTADO_BUSCANDO;
+  println ("ESTADO BUSCANDO");
+  PikamaClient.ResetBGSubtraction();
+}
 
 void EstadoANegro() {
   estado = ESTADO_NEGRO;
   println("ESTADO NEGRO");
-  PikamaClient.ResetBGSubtraction();
-  resetBGTimer = int(frameRate*1.5);
-  println(millis() + " : ask to reset");
+  alarmaDeNegro = millis() + MAX_TIEMPONEGRO;
+  // resetBGTimer = int(frameRate*1.5);
+  // println(millis() + " : ask to reset");
 }
 void EstadoALinea() {
   animar_linea=true;
-  alarmaDeLinea = millis() + MAX_TIEMPONEGRO;
+  alarmaDeLinea = millis() + MAX_TIEMPOLINEA;
   recargaLinea();
   estado = ESTADO_LINEA;
   println("ESTADO LINEA");
 }
-
+void EstadoAArbol() {
+  estado = ESTADO_ARBOL;
+  alarmaDeArbol = millis() + MAX_TIEMPOARBOL;
+  trees = new Trees(linea, 5, 10);
+  println("ESTADO ARBOL");
+}
 
 void recargaLinea() {
   linea.nuevaAleatoriaVertical(1);

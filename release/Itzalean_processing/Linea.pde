@@ -1,4 +1,5 @@
-class Linea { //<>//
+ //<>//
+public class Linea {
   public int max_segmentos;
   public PVector[] puntos;
 
@@ -41,8 +42,8 @@ class Linea { //<>//
 
   // rellena los puntos con aleatórios de arriba a abajo
   public void nuevaAleatoriaVertical(float rnd) {
-    float rangoY = width * 2.5 / max_segmentos;
-    puntos[0] = new PVector(random(0, width), 0);
+    float rangoY = height * 2.5 / max_segmentos;
+    puntos[0] = new PVector(random(width/10, width/10*9), 0);
     for (int i=1; i<max_segmentos; i++) {
       float nextx = puntos[i-1].x + (int)random(-60, 60)*rnd;
       float nexty = puntos[i-1].y + (int)random(0, rangoY)*rnd;
@@ -112,14 +113,6 @@ class Linea { //<>//
 
 
   public void dibuja() {
-    if (DEBUG) {
-      pushMatrix();
-      stroke(250);
-      noFill();
-      // rect(linea.minX, linea.minY, linea.boundW, linea.boundH);
-      popMatrix();
-    }
-
     pushMatrix();
     stroke(47, 250, 200, 150);
     strokeWeight(1);
