@@ -52,6 +52,7 @@ void setup() {
   // size(640, 360);
   fullScreen();
   frameRate(24);
+  noCursor();
 
   linea = new Linea(MAX_SEGMENTOS); //
   trees = new Trees();
@@ -204,7 +205,10 @@ void EstadoAArbol() {
 }
 
 void recargaLinea() {
-  linea.nuevaAleatoriaVertical(1);
+  if (PikamaClient.lastCrossedBlob != null && random(1)>0.6) 
+    linea.nuevaLineaEncierrona(PikamaClient.lastCrossedBlob);
+  else
+    linea.nuevaAleatoriaVertical(1);
 }
 
 

@@ -81,16 +81,21 @@ public class Linea {
 
 
 
-
-
   // genera una linea perpendicular entre el mouse y el centro del a ventana
+  public void nuevaLineaEncierrona(PVector alejamiento) {
+    PVector zonaCentral = new PVector( (width/2)+random(-width/3,width/3), (height/2)+random(-height/3,height/3)  );
+    nuevaLineaEncierrona(alejamiento, zonaCentral);
+  }
   public void nuevaLineaEncierrona() {
     // determina las zonas a separar
-    PVector zonaA = new PVector(mouseX, mouseY);
-    PVector zonaB = new PVector(width/2, height/2);
+    PVector zonaAlejamiento = new PVector(mouseX, mouseY);
+    PVector zonaCentral = new PVector(width/2, height/2);
+    nuevaLineaEncierrona(zonaAlejamiento, zonaCentral);
+  }
 
+  public void nuevaLineaEncierrona(PVector zonaA, PVector zonaB) {
     // encuentra un punto a la mitad de esas dos zonas
-    PVector mitad = PVector.lerp(zonaA, zonaB, 0.6);
+    PVector mitad = PVector.lerp(zonaA, zonaB, 0.5);
 
     // determina un punto de tangente: invirtiendo los ejes y usando con la diferencia entre ellos (because math)
     PVector tangent = new PVector(zonaB.y - mitad.y, mitad.x - zonaB.x);
@@ -98,11 +103,12 @@ public class Linea {
     tangent.mult(height);
 
     // utiliza la función para generar una linea fija, pero en las coordenadas de la tangente
-    nuevaFija( mitad.x - tangent.x, 
+    nuevaFija( 
+      mitad.x - tangent.x, 
       mitad.y - tangent.y, 
       mitad.x + tangent.x, 
       mitad.y + tangent.y, 
-      0.4); // esto control cuanto random sobre la linea recta
+      0.8); // esto control cuanto random sobre la linea recta
 
     ResetMaxMins();
     println("nueva linea entre: "+(int)minX+","+(int)maxX+"  "+(int)minY+","+(int)maxY);

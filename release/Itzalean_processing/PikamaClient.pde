@@ -24,6 +24,8 @@ public static class PikamaClient {
 
   public static float scalex, scaley;
 
+  public static PVector lastCrossedBlob;
+
 
   PikamaClient() {
   }
@@ -137,7 +139,8 @@ public static class PikamaClient {
           linea.puntos[j-1].x, linea.puntos[j-1].y, 
           linea.puntos[j].x, linea.puntos[j].y,
           p[0], p[1]);
-        if (d <  p[2]*rangocerca ) {  // cerca
+        if (d <  p[2]*rangocerca ) {  // cerca //cruzando
+          lastCrossedBlob = new PVector(p[0],p[1]);
           return 2;
         }
         else if ( d < (p[2]*p[2])/rangolejos ) {  // lejos
