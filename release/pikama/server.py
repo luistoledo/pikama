@@ -29,27 +29,31 @@ class CommandsHandler(tornado.web.RequestHandler):
     @gen.coroutine
     def get(self, cmd):
         print(cmd)
+        
         if cmd=="reset":
             cam.firstFrame = None
             self.write("ok")
-        if cmd=="mirror_horizontal":
+        elif cmd=="mirror_horizontal":
             cam.mirror_horizontal = not cam.mirror_horizontal
             self.write("ok")
-        if cmd=="mirror_vertical":
+        elif cmd=="mirror_vertical":
             cam.mirror_vertical = not cam.mirror_vertical
             self.write("ok")
-        if cmd=="max_area":
+        elif cmd=="max_area":
             cam.max_area += 500
             self.write("ok")
-        if cmd=="min_area":
+        elif cmd=="min_area":
             cam.min_area += 100
             self.write("ok")
-        if cmd=="threshold":
+        elif cmd=="threshold":
             cam.thval += 10
             self.write("ok")
-        if cmd=="view":
+        elif cmd=="view":
             cam.displayImageIndex += 1
+            if cam.displayImageIndex>2:
+                cam.displayImageIndex=0
             self.write("ok")
+
         self.redirect('/')
         # self.finish()
 
