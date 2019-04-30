@@ -1,0 +1,6 @@
+imutils
+picamera
+python_osc
+tornado>5,<6.0
+numpy
+cv2

@@ -16,6 +16,7 @@ import imutils
 import time
 import sys
 import cv2
+import numpy as np
 
 class Pikama:
 
@@ -27,8 +28,11 @@ class Pikama:
   points = list()
   mirror_horizontal = False
   mirror_vertical = False
+  fullScreen = False
   width = 500
   height = 500
+  showHelp = True
+  showBlobs = True
   need_snapshot = False
   
   def __init__(self, args=None):
@@ -39,6 +43,7 @@ class Pikama:
       ap.add_argument("-A", "--max-area", type=int, default=10000, help="maximum area size")
       ap.add_argument("-t", "--threshold", type=int, default=20, help="video threshold")
       ap.add_argument("-d", "--debug-windows", type=bool, default=True, help="displays debug image windows")
+      ap.add_argument("-f", "--fullscreen", nargs='?', const=False, help="displays debug window on full screen")
       args = vars(ap.parse_args())
 
     self.source = "file"
@@ -50,17 +55,25 @@ class Pikama:
     else:
       self.source = "camera"
       self.vs = cv2.VideoCapture(args["video"])
-      self.vs.set(cv2.cv.CV_CAP_PROP_FPS, 10)
+      self.vs.set(cv2.cv.CV_CAP_PROP_FPS, 5)
      
     # initialize the first frame in the video stream
     self.firstFrame = None
     self.debugWindows = args["debug_windows"]
+    self.fullScreen = args["fullscreen"] is False
     self.displayImageIndex = 0 #debug image
     self.min_area = args["min_area"] # blob minim size
     self.max_area = args["max_area"] # blob max size
     self.thval = args["threshold"]
     self.is_active = True
-    cv2.namedWindow("video")
+    self.showHelp = True
+    self.showBlobs = True
+    cv2.namedWindow("video", cv2.WINDOW_NORMAL)
+    if self.fullScreen:
+      # cv2.resizeWindow("video", 1024, 768)
+      cv2.setWindowProperty("video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+    else:
+      cv2.setWindowProperty("video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
     cv2.setMouseCallback("video", self.click_and_crop)
     #  TODO : extraer width height y exponerlo
 
@@ -95,7 +108,7 @@ class Pikama:
       frame = cv2.flip( frame, 1 )
 
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    gray = cv2.GaussianBlur(gray, (21, 21), 0)
+    gray = cv2.GaussianBlur(gray, (11, 11), 0)
    
     # if the first frame is None, initialize it
     if self.firstFrame is None:
@@ -112,6 +125,8 @@ class Pikama:
       cv2.CHAIN_APPROX_SIMPLE) #TODO: optimizar búsqueda de Rects
     cnts = imutils.grab_contours(cnts)
 
+    # self.displayImage is the image reference
+    # local displayImage is the actual image
     self.displayImage = self.firstFrame
     if self.debugWindows:
       if self.displayImageIndex==0:
@@ -124,10 +139,11 @@ class Pikama:
     self.points = list()
 
     for c in cnts:
+      area = cv2.contourArea(c)
       # if the contour is too small, ignore it
-      if cv2.contourArea(c) < self.min_area:
+      if area < self.min_area:
         continue
-      if cv2.contourArea(c) > self.max_area:
+      if area > self.max_area:
         continue
 
       # M = cv2.moments(c)
@@ -142,30 +158,39 @@ class Pikama:
 
       self.points.append([x,y,radius])
 
-      # if self.debugWindows:
-      cv2.circle(displayImage, center, radius,(0,255,0),2)
+      if self.showBlobs:
+        cv2.circle(displayImage, center, radius,(0,255,0),2)
+
+    if self.fullScreen:
+      cv2.setWindowProperty("video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+    else:
+      cv2.setWindowProperty("video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
 
     if self.debugWindows:
-      cv2.putText(displayImage,"blobs: "+str(len(self.points)),(10,13),cv2.FONT_HERSHEY_SIMPLEX, 0.4, (205, 250, 150), lineType=cv2.LINE_AA)
-      cv2.putText(displayImage,"threshold: "+str(self.thval),(10,33),cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), lineType=cv2.LINE_AA)
-      cv2.putText(displayImage,"min_area: "+str(self.min_area),(10,53),cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), lineType=cv2.LINE_AA)
-      cv2.putText(displayImage,"max_area: "+str(self.max_area),(10,73),cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), lineType=cv2.LINE_AA)
+      if self.showHelp:
+        cv2.putText(displayImage,"blobs: "+str(len(self.points)),(10,13),cv2.FONT_HERSHEY_SIMPLEX, 0.4, (205, 250, 150), lineType=cv2.LINE_AA)
+        cv2.putText(displayImage,"threshold: "+str(self.thval),(10,33),cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), lineType=cv2.LINE_AA)
+        cv2.putText(displayImage,"min_area: "+str(self.min_area),(10,53),cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), lineType=cv2.LINE_AA)
+        cv2.putText(displayImage,"max_area: "+str(self.max_area),(10,73),cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), lineType=cv2.LINE_AA)
 
-      cv2.putText(displayImage,"1: threshold",(10,90),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (155, 155, 155), lineType=cv2.LINE_AA)
-      cv2.putText(displayImage,"2: min_size",(10,100),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (155, 155, 155), lineType=cv2.LINE_AA)
-      cv2.putText(displayImage,"3: max_size",(10,110),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (155, 155, 155), lineType=cv2.LINE_AA)
-      cv2.putText(displayImage,"f: REINICIA REFERENCIA",(10,120),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (155, 155, 155), lineType=cv2.LINE_AA)
-      cv2.putText(displayImage,"m: mirror horizontal",(10,130),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (155, 155, 155), lineType=cv2.LINE_AA)
-      cv2.putText(displayImage,"n: mirror vertical",(10,140),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (155, 155, 155), lineType=cv2.LINE_AA)
-      cv2.putText(displayImage,"r: reiniciar crop",(10,150),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (155, 155, 155), lineType=cv2.LINE_AA)
-      cv2.putText(displayImage,"mouse drag: crop",(10,160),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (155, 155, 155), lineType=cv2.LINE_AA)
-      cv2.putText(displayImage,"v: visuals",(10,170),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (155, 155, 155), lineType=cv2.LINE_AA)
-      cv2.putText(displayImage,"d: hide/show debug",(10,180),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (155, 155, 155), lineType=cv2.LINE_AA)
-      cv2.putText(displayImage,"q: salir",(10,190),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (155, 155, 155), lineType=cv2.LINE_AA)
+        cv2.putText(displayImage,"1: threshold",(10,90),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (155, 155, 155), lineType=cv2.LINE_AA)
+        cv2.putText(displayImage,"2: min_size",(10,100),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (155, 155, 155), lineType=cv2.LINE_AA)
+        cv2.putText(displayImage,"3: max_size",(10,110),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (155, 155, 155), lineType=cv2.LINE_AA)
+        cv2.putText(displayImage,"space: REINICIA REFERENCIA",(10,120),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (155, 155, 155), lineType=cv2.LINE_AA)
+        cv2.putText(displayImage,"m: mirror horizontal",(10,130),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (155, 155, 155), lineType=cv2.LINE_AA)
+        cv2.putText(displayImage,"n: mirror vertical",(10,140),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (155, 155, 155), lineType=cv2.LINE_AA)
+        cv2.putText(displayImage,"r: reiniciar crop",(10,150),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (155, 155, 155), lineType=cv2.LINE_AA)
+        cv2.putText(displayImage,"mouse drag: crop",(10,160),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (155, 155, 155), lineType=cv2.LINE_AA)
+        cv2.putText(displayImage,"v: visuals",(10,170),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (155, 155, 155), lineType=cv2.LINE_AA)
+        cv2.putText(displayImage,"d: hide/show debug",(10,180),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (155, 155, 155), lineType=cv2.LINE_AA)
+        cv2.putText(displayImage,"q: salir",(10,190),cv2.FONT_HERSHEY_SIMPLEX, 0.3, (155, 155, 155), lineType=cv2.LINE_AA)
 
       if self.cropping:
         cv2.rectangle(displayImage, self.crop_coords[0], self.crop_coords[1], (200, 5, 5, 0.1), 2)
 
+      # longest_side = max(self.width, self.height)
+      # black = 255 * np.zeros((longest_side,longest_side,3), np.uint8)
+      # cv2.imshow("video", black)
       cv2.imshow("video", displayImage)
 
     if self.need_snapshot: 
@@ -190,12 +215,18 @@ class Pikama:
     elif key == ord("n"):
       self.mirror_vertical = not self.mirror_vertical
       self.firstFrame = None
-    
     elif key == ord("f"):
+      self.fullScreen = not self.fullScreen
+    
+    elif key == ord(" "):
       self.firstFrame = None
     
     elif key == ord("d"):
       self.debugWindows = not self.debugWindows
+    elif key == ord("h"):
+      self.showHelp = not self.showHelp
+    elif key == ord("b"):
+      self.showBlobs = not self.showBlobs
     
     elif key == ord("1"):
       self.thval+=10
