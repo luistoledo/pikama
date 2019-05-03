@@ -55,7 +55,8 @@ class Pikama:
     else:
       self.source = "camera"
       self.vs = cv2.VideoCapture(args["video"])
-      self.vs.set(cv2.cv.CV_CAP_PROP_FPS, 5)
+    
+    self.vs.set(cv2.CAP_PROP_FPS, 5)
      
     # initialize the first frame in the video stream
     self.firstFrame = None
@@ -68,7 +69,7 @@ class Pikama:
     self.is_active = True
     self.showHelp = True
     self.showBlobs = True
-    cv2.namedWindow("video", cv2.WINDOW_NORMAL)
+    cv2.namedWindow("video", cv2.WINDOW_NORMAL | cv2.WINDOW_FREERATIO)
     if self.fullScreen:
       # cv2.resizeWindow("video", 1024, 768)
       cv2.setWindowProperty("video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
