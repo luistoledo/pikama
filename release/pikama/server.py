@@ -88,6 +88,9 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         print ('----websocket receive: ' + message)
         # self.write_message("receive: "+message)
 
+    def check_origin(self, origin):
+        return True
+
     @classmethod
     def broadcast(self, message):
         for waiter in self.waiters:
