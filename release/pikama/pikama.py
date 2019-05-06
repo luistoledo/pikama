@@ -69,6 +69,7 @@ class Pikama:
     self.showHelp = True
     self.showBlobs = True
     cv2.namedWindow("video", cv2.WINDOW_NORMAL | cv2.WINDOW_FREERATIO)
+
     if self.fullScreen:
       cv2.setWindowProperty("video", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
       self.showBlobs = False
@@ -115,6 +116,7 @@ class Pikama:
     # if the first frame is None, initialize it
     if self.firstFrame is None:
       self.firstFrame = gray
+      print(self.points) # this is smoke and mirrors, should remove later TODO
       return
 
     # compute the absolute difference between the current frame and first frame
